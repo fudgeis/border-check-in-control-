@@ -11,6 +11,11 @@ Features:
 
 - citation & firing system:every wrong approval or denial issues an official embassy citation—survive as many days as possible before hitting 3 strikes.
 
+
+- A low number if commits (1,4) is a sus person and u should def interrogate them
+
+- escalating rules will appear in the rulebook till the 3rd day 
+
 Setup and run!:
 
 install the required library using 'pip'

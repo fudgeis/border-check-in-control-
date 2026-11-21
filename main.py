@@ -17,12 +17,22 @@ EVENTS = ["Apex","Counterspell","Boreal","Outernet","Apocalypse","Arcade"]
 VALID_STAMPS = ["EMBASSY-2026","ORPHEUS-OK","YSWS-VERIFIED",]
 FAKE_STAMPS = ["EMBASSY-2025","ORPHEUS-NO","FAKE-STAMP","PENDING-99"]
 
+
+def get_daily_rules(day: int) -> dict:
+    return {
+        "min_commits": 15 if day >= 2 else 1,
+        "banned_country": "Dino Island" if day >= 3 else None,
+    }
+
+
 def generate_entrant(day: int) -> dict:
+    rules = get_daily_rules(day)
     name = f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
-    country = random.choice(COUNTRIES)
+    allowed_countries = [c for c in COUNTRIES if c != rules["banned_country"]]
+    country = random.choice(allowed_countries)
     event = random.choice(EVENTS)
     slack_id = f"U0{random.randint(1000000,9999999)}"
-    github_commits = random.randint(5,120)
+    github_commits = random.randint(rules["min_commits"] + 5, 120)
 
     today = datetime.now() + timedelta(days=day - 1)
     exp_date = today + timedelta(days=random.randint(30, 365))
@@ -30,9 +40,13 @@ def generate_entrant(day: int) -> dict:
 
     is_valid = random.choice([True, False])
     reason = "All documents verified."
-    statement = f"Im flying rom {country} to build a project for hack club{event}!"
+    statement = f"Im flying rom {country} to build a project for hack club {event}!"
     if not is_valid:
-        flaw = random.choice(["expired", "bad slack", "fake stamp", "zero_commits","lie"])
+        possible_flaws = ["expired", "bad slack", "fake stamp", "low_commits", "lie"]
+        if rules["banned_country"]:
+            possible_flaws.append("banned_country")
+
+        flaw = random.choice(possible_flaws)
         if flaw == "expired":
             exp_date = today - timedelta(days=random.randint(1,60))
             reason = f"Passport expired on {exp_date.strftime('%Y-%m-%d')}."
@@ -42,14 +56,18 @@ def generate_entrant(day: int) -> dict:
         elif flaw == "fake stamp":
             stamp = random.choice(FAKE_STAMPS)
             reason = f"Unrecognized Embassy stamp: {stamp}."
-        elif flaw == "zero_commits":
-            github_commits = 0
-            reason = "0 Github commits logged. Ship ur code to enter!"
+        elif flaw == "low_commits":
+            github_commits = 0 if day == 1 else random.randint(5, rules["min_commits"] - 1)
+            reason = f"Only {github_commits} Github commits logged (need {rules['min_commits']} today)!"
+        elif flaw == "banned_country":
+            country = rules["banned_country"]
+            statement = f"Im flying rom {country} to build a project for hack club {event}!"
+            reason = f"Travelers from {country} are restricted starting Day 3!"
         elif flaw == "lie":
             github_commits = random.randint(1,4)
             fake_event = random.choice ([e for e in EVENTS if e != event])
-            statement = f"erm im super excited ig to attend hack club{fake_event}!"
-            reason = f"lied during interrogation u scammer! passport says {event}but they said {fake_event}" 
+            statement = f"erm im super excited ig to attend hack club {fake_event}!"
+            reason = f"lied during interrogation u scammer! passport says {event} but they said {fake_event}" 
         
     return {
         "name": name,
@@ -68,6 +86,7 @@ def generate_entrant(day: int) -> dict:
 
 def render_desk (entrant: dict , score: int, citations: int, day:int):
     console.clear()
+    rules_data = get_daily_rules(day)
 
     header = Panel(
         f"[bold cyan]HACK CLUB EMBASSY CHECKPOINT[/bold cyan]  |  "
@@ -80,17 +99,22 @@ def render_desk (entrant: dict , score: int, citations: int, day:int):
     )
     console.print(header)
 
-
-    rules = Panel(
+    rule_text = (
         "[bold underline]todays entry requirments[/bold underline]\n"
         "1. passport must [bold green]NOT be expired[/bold green] (check Date above).\n"
-        "2.slack id must start with [bold cyan]U0[/bold cyan].\n" \
+        "2. slack id must start with [bold cyan]U0[/bold cyan].\n"
         "3. stamp must be: [bold]EMBASSY-2026[/bold], [bold]ORPHEUS-OK[/bold], or [bold]YSWS-VERIFIED[/bold].\n"
-        "4.hacker should have [bold yellow]at least 1 github commit[/bold yellow].\n"
-        "5.press [bold magenta]I[/bold magenta]to interrogate a person if they seem sus.",
+        f"4. hacker should have [bold yellow]at least {rules_data['min_commits']} github commit(s)[/bold yellow].\n"
+        "5. press [bold magenta]I[/bold magenta] to interrogate a person if they seem sus."
+    )
+    if rules_data["banned_country"]:
+        rule_text += f"\n[bold red]6. NEW: deny all travelers from {rules_data['banned_country']}![/bold red]"
+
+    rules = Panel(
+        rule_text,
         title="[bold yellow]official rulebook[/bold yellow]",
         border_style="yellow",
-        width=48
+        width=50
     )
 
     passport_table = Table(show_header=False,box=box.SIMPLE)
@@ -121,6 +145,7 @@ def render_desk (entrant: dict , score: int, citations: int, day:int):
 
     console.print(Columns([rules, passport, system_panel]))
 
+
 def main():
     score = 0 
     citations = 0 
@@ -149,7 +174,6 @@ def main():
               f"\n[bold white]Action[/bold white] ([bold green]A[/bold green]pprove / [bold red]D[/bold red]eny / [bold magenta]I[/bold magenta]nterrogte [{interrogations_left} left] / [bold dim]Q[/bold dim]uit)",
                choices=["a","d","i","q","A","D","I","Q"],
                show_choices=False
-
                ).lower()
 
             if decision == "i":
@@ -162,11 +186,8 @@ def main():
               else:
                   console.print("\n[red]no interrogation remaining for u buddy![/red]")
                   time.sleep(1.2)
-
             else:
                 break
-              
-                  
         
         if decision == "q":
             console.print("\n[yellow]Shift ended early. Glory to Hack Club![/yellow]")
@@ -177,7 +198,6 @@ def main():
         if approved == entrant["is_valid"]:
             score += 1
             console.print("\n[bold green]✓ CORRECT DECISION![/bold green] Next hacker approaching...")
-            
         else:
             citations += 1
             if "lied during interrogation" in entrant["reason"].lower() and not interrogated:
@@ -190,7 +210,7 @@ def main():
             day += 1
             processed_today = 0
             interrogations_left = 2
-            console.print(f"\n[bold cyan]--- SHIFT COMPLETE! Advancing to Day {day} ---[/bold cyan]")
+            console.print(f"\n[bold cyan]--- SHIFT COMPLETE! Advancing to Day {day} (New Rules Active!) ---[/bold cyan]")
 
         time.sleep(2.2)
 
@@ -200,6 +220,7 @@ def main():
             f"Final Score: [bold]{score}[/bold] hackers processed across [bold]{day}[/bold] days.",
             border_style="red"
         ))
+        input("\nPress Enter to exit...")
 
 
 if __name__ == "__main__":
