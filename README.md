@@ -1,30 +1,43 @@
-Border Check In Simulator 
+# border check-in control
 
-Features:
-- interactive UI: built with Python's `rich` library to render a live status bar, official rulebook, digital passport, and Embassy database lookup side-by-side.
-  
-- documents Verification: inspect passport expiration dates, `U0` Slack ID prefixes, valid Embassy stamps (`EMBASSY-2026`, `ORPHEUS-OK`, `YSWS-VERIFIED`), and GitHub commit counts.
-  
-- interrogation (`I`): question up to 2 suspicious hackers per shift (especially travelers with low `1–4` commit counts) to catch lies between their passport destination and their story.
+![gameplay screenshot](screenshot.png)
 
-- system date & shift progression: Syncs with your real system date (`datetime.now()`) and advances across multi-day shifts every 4 hackers processed.
+## what is this & why did i build it?
+**border check-in control** is a border-inspection game inspired by *papers, please*, built in python for **hack club embassy**. you play as a border officer at the embassy checkpoint deciding who gets into hack club events and who gets **SENT** cuz they are sus.
 
-- citation & firing system:every wrong approval or denial issues an official embassy citation—survive as many days as possible before hitting 3 strikes.
+i built this because i wanted to make a fun game that actually looks cool in the terminal instead of plain white text, so i learned how to use python's `rich` library for colored panels and tables, `datetime` for live dates, and `pyinstaller`(cuz reviewer said no video links and now that i think of it he kinda helped me learn more abt turning code into applications) to turn it into a real `.exe` anyone can run.
 
+## what's inside
+- **side by side terminal ui:** uses `rich` to show the rulebook, passport, and databas panels next to each other.
+- **document checks:**u  gotta check passport expiration dates, `U0` slack ids, official visa stamps (`EMBASSY-2026`, `ORPHEUS-OK`, `YSWS-VERIFIED`), and commit counts.
+- **interrogation (`i`):** if someone has sus low commits (1–4), you can interrogate them (2 uses per day) to catch them lying about what event they're going to.
+- **escalating daily rules:** every 4 hackers moves you to the next day—day 2 bumps the commit minimum to 15, and day 3 bans travelers from dino island.
 
-- A low number if commits (1,4) is a sus person and u should def interrogate them
+## controls & how to play
+- **`a`** — approve entry
+- **`d`** — deny entry
+- **`i`** — interrogate (u got 2 uses per day)
+- **`q`** — quit shift early
 
-- escalating rules will appear in the rulebook till the 3rd day 
+**ur goal:** check the rules on the left against the hacker's passport and info on the right. survive as many days as you can without getting **3 citations** (3 mistakes = fired).
 
-Setup and run!:
+## how to run / play
 
-install the required library using 'pip'
-```bash
+### option 1: just run the `.exe` (windows — easiest)
+1. go to the [**v1.0 releases page**](https://github.com) and download **`BorderCheckInControl.exe`**.
+2. double click it and start playing
+
+### option 2: run from python source code
+1. **clone the repo:**
+   ```bash
+   git clone https://github.com
+   cd border-check-in-control-
+   ```
+2. **install `rich`:**
+   ```bash
    pip install -r requirements.txt
    ```
-   run the game:
-  ```bash
-      python main.py
+3. **run the game:**
+   ```bash
+   python main.py
    ```
-
-  The sreenshot is uploaded to the repo as a seperate file 
