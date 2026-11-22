@@ -13,7 +13,7 @@ i built this because i wanted to make a fun game that actually looks cool in the
 - **interrogation (`i`):** if someone has sus low commits (1–4), you can interrogate them (2 uses per day) to catch them lying about what event they're going to.
 - **escalating daily rules:** every 4 hackers moves you to the next day—day 2 bumps the commit minimum to 15, and day 3 bans travelers from dino island.
 
-## controls & how to play
+## controls and how to play
 - **`a`** — approve entry
 - **`d`** — deny entry
 - **`i`** — interrogate (u got 2 uses per day)
